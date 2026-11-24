@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cards Against Ethicality</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: rowdy classroom party game, but every round lands a real ethics lesson
+   IDEA: green ledger paper on the table, black and white playing cards dealt on top
+   PICTURE: the cards themselves, big, slightly tilted, like they were tossed down
+   COLOUR and TYPE: ledger green field, card black/white, highlighter yellow accent; Inter 800/900
+   LAYOUT: projector = black card left, live action right; phone = black card on top, hand below */
+:root{--bg:#103a2c;--bg2:#0b2a20;--line:rgba(255,255,255,.06);--ink:#f3f1ea;--mut:#a9c4b8;--hi:#ffd23f;--bad:#ff8a7a;--card:#fff;--cardink:#111}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{background:var(--bg) repeating-linear-gradient(0deg,transparent 0 31px,var(--line) 31px 32px);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;overflow-x:clip}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 20px;font-weight:800;background:var(--hi);color:#1b1400}
+button.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+input{width:100%;font-size:18px;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:var(--ink)}
+input.code{text-transform:uppercase;letter-spacing:.3em;font-weight:900;font-size:28px;text-align:center}
+label{display:block;font-weight:600;color:var(--mut);margin:14px 0 6px}
+.wrap{max-width:1240px;margin:0 auto;padding:clamp(16px,3vw,40px)}
+.brand{font-weight:900;letter-spacing:-.02em;line-height:1.05}
+.brand small{display:block;font-weight:600;color:var(--mut);letter-spacing:0;font-size:15px;margin-top:6px}
+.card{border-radius:16px;padding:20px 20px 44px;font-weight:800;line-height:1.2;position:relative;box-shadow:0 10px 0 rgba(0,0,0,.25),0 18px 40px rgba(0,0,0,.35)}
+.card::after{content:"Cards Against Ethicality";position:absolute;left:20px;bottom:14px;font-size:11px;font-weight:800;opacity:.55}
+.black{background:#111;color:#fff}
+.white{background:var(--card);color:var(--cardink)}
+.blank{display:inline-block;min-width:3em;border-bottom:3px solid currentColor;line-height:1;transform:translateY(-.2em)}
+.fill{color:#b00020;font-weight:900}
+.black .fill{color:var(--hi)}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center;min-height:calc(100vh - 80px)}
+.hero h1{font-size:clamp(40px,6vw,72px);margin:0 0 12px}
+.deal{position:relative;height:340px}
+.deal .card{position:absolute;width:230px;height:300px;font-size:22px}
+.deal .c1{left:6%;top:10px;transform:rotate(-8deg)}
+.deal .c2{left:34%;top:30px;transform:rotate(4deg)}
+.deal .c3{left:58%;top:4px;transform:rotate(11deg)}
+.panel{background:rgba(0,0,0,.28);border-radius:20px;padding:22px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--mut)}
+.err{color:var(--bad);font-weight:600}
+/* host */
+.top{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:24px}
+.joinline{font-size:clamp(16px,1.6vw,22px)}
+.joinline b{color:var(--hi)}
+.roomcode{font-size:clamp(28px,3.4vw,46px);font-weight:900;letter-spacing:.18em;background:#111;padding:4px 18px;border-radius:12px}
+.stage{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(20px,3vw,40px);align-items:start}
+.stage .black{font-size:clamp(26px,2.8vw,40px);min-height:300px;transform:rotate(-1.5deg)}
+.timer{font-size:clamp(40px,5vw,72px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.timer.low{color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.1);font-weight:600;font-size:15px}
+.chip.on{background:var(--hi);color:#1b1400}
+.chip.off{opacity:.4}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.opts .white{font-size:clamp(16px,1.3vw,20px);padding:14px 40px 30px 14px;min-height:96px}
+.opts .white::after{bottom:9px;font-size:10px}
+.tag{position:absolute;right:12px;top:10px;font-weight:900;font-size:13px;background:#111;color:#fff;border-radius:6px;padding:2px 8px}
+.res{display:grid;gap:10px}
+.resrow{display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:12px;align-items:center;background:rgba(0,0,0,.25);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden}
+.resrow .bar{position:absolute;inset:0 auto 0 0;background:rgba(255,210,63,.18)}
+.resrow.win{box-shadow:inset 0 0 0 3px var(--hi)}
+.resrow span,.resrow b{position:relative}
+.resrow b{text-align:right;font-size:22px;font-variant-numeric:tabular-nums}
+.by{display:block;font-size:13px;color:var(--mut);font-weight:600}
+.lesson{background:var(--hi);color:#1b1400;border-radius:16px;padding:18px 20px;margin-top:18px;font-size:clamp(17px,1.5vw,22px);font-weight:600}
+.lesson b{display:block;font-weight:900;font-size:14px;margin-bottom:4px}
+.board{display:grid;gap:6px;counter-reset:r}
+.board div{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;gap:8px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.22);font-weight:600}
+.board div::before{counter-increment:r;content:counter(r);color:var(--mut)}
+.board div b{font-variant-numeric:tabular-nums}
+.qr{background:#fff;border-radius:16px;padding:14px;width:min(320px,100%);aspect-ratio:1;display:grid;place-items:center}
+.qr svg,.qr img{width:100%;height:100%}
+.big{font-size:clamp(22px,2.4vw,34px);font-weight:800;line-height:1.2}
+/* phone */
+.phone{max-width:560px;margin:0 auto;padding:16px 16px 120px}
+.phone .black{font-size:21px;min-height:140px;margin-bottom:18px}
+.hand{display:grid;gap:10px}
+.hand button{background:var(--card);color:var(--cardink);text-align:left;font-weight:800;font-size:18px;line-height:1.25;padding:16px;border-radius:14px;min-height:64px;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.hand button.sel{outline:4px solid var(--hi);outline-offset:2px;transform:translateY(-2px)}
+.hand button.mine{opacity:.4}
+.dock{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg2) 30%)}
+.dock button{width:100%;max-width:528px;display:block;margin:0 auto;font-size:19px;min-height:56px}
+.status{display:flex;justify-content:space-between;gap:10px;font-weight:600;color:var(--mut);margin-bottom:12px;flex-wrap:wrap}
+.status b{color:var(--ink)}
+.banner{background:rgba(255,138,122,.18);color:#ffd8d1;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-weight:600}
+.wait{text-align:center;padding:30px 10px}
+.wait .big{margin-bottom:8px}
+@media(max-width:860px){.hero,.stage{grid-template-columns:minmax(0,1fr)}.deal{height:260px}.deal .card{width:170px;height:220px;font-size:17px}}
+@media(prefers-reduced-motion:no-preference){.pop{animation:pop .35s ease-out}@keyframes pop{from{transform:translateY(14px) scale(.97);opacity:0}}}
+</style>
+</head>
+<body>
+<div id="app"><div class="wrap"><p class="brand" style="font-size:40px">Cards Against Ethicality</p><p class="muted">Loading…</p></div></div>
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+const BLACK = [
+["The audit partner signed off on the financials because ____.","Signing off takes enough appropriate evidence, not vibes. Due care means competence and diligence before you put your name on anything."],
+["My rationalization for embezzling: ____.","Rationalization is one side of the fraud triangle: 'I'll pay it back' or 'I deserve it' is how ordinary people talk themselves into fraud."],
+["The fraud triangle has a new fourth side: ____.","The classic fraud triangle is Pressure, Opportunity and Rationalization. Remove any one side and fraud gets much harder."],
+["Why I own stock in my audit client: ____.","Owning shares in an audit client creates a self-interest threat. A direct financial interest impairs independence."],
+["The client threatened to fire us unless we accepted ____.","That's an undue influence threat. Bend to it and objectivity is gone. Escalate it, apply safeguards or walk away."],
+["HealthSouth didn't start with billions in fraud. It started with ____.","Aaron Beam's lesson: small, 'one-time' reporting fudges escalate into major fraud. The first compromise is the one to refuse."],
+["Helen Sharkey's lesson for every junior employee: ____ is not a legal defense.","Dynegy showed that lower-level employees still carry ethical and legal responsibility. 'My supervisor approved it' doesn't make it legal."],
+["Segregation of duties is great until ____.","Segregation of duties prevents fraud because no single person controls a transaction from start to finish. One person approving their own expenses is opportunity."],
+["A consequentialist would justify ____ by pointing at the outcome.","Consequentialism judges actions by their results for everyone affected: employees, customers, investors and the public, not just this quarter's bonus."],
+["Kant would never approve of ____.","Duty-based ethics means following moral rules even when breaking them would be profitable."],
+["Virtue ethics asks: what would a person of good character do about ____?","Virtue ethics is about character: being honest because integrity matters to you, not because the cameras are on."],
+["Instead of obtaining the necessary competence, I tried ____.","If you lack specialized knowledge, get the necessary competence before doing the work, or don't take the engagement."],
+["A confidentiality exception I made up: ____.","CPAs disclose confidential client info only with client consent or an applicable exception (like a valid subpoena or peer review)."],
+["My boss asked me to inflate revenue with ____.","The ethical move: refuse, document it and raise the issue through the proper channels."],
+["Our entire system of internal controls is ____.","Real controls include segregation of duties, approvals, reconciliations and oversight. A sticky note is not a control."],
+["Today's self-review threat: auditing ____.","A self-review threat arises when a CPA evaluates work they (or their firm) previously performed."],
+["The audit client sent a gift basket containing ____.","Ask whether accepting a gift threatens independence or objectivity. Anything beyond clearly insignificant is a problem."],
+["I started job negotiations with my audit client by offering ____.","If an audit team member negotiates employment with the client, notify the firm and remove them from the engagement."],
+["The referral commission from my audit client was paid in ____.","A CPA may not receive a commission from an attest client. Not even in breadsticks."],
+["My busy season survival strategy: ____.","Fatigue doesn't suspend due care. If you can't do the work competently, raise it early and get help."],
+["The crypto scam's pitch deck promised ____.","Daniel Thornburgh's work shows two groups of victims: investors who lose money and trafficked workers forced to run the scams."],
+["Ethical leadership means encouraging employees to raise concerns, not ____.","Ethical leaders create a speak-up culture with no retaliation. 'Integrity' on the website isn't enough."],
+["Stakeholders affected by this decision: employees, investors and ____.","Identifying stakeholders tells you who will be affected, which is step one of working through any ethical dilemma."],
+["I spotted red flags for fraud, but I decided to ____ instead.","Indicators of fraud call for following the proper procedures to investigate and report, not ignoring them or going viral."],
+["What I told the auditor when they asked about ____.","Integrity requires CPAs to be honest and candid, even when the truth is inconvenient."],
+["Objectivity? Never heard of it. I just ____.","Objectivity means avoiding bias, conflicts of interest and improper influence, whoever is paying."],
+["I found an error in last year's work. My corrective step: ____.","When you find an error in issued work, evaluate it and take appropriate corrective steps. Deleting the workbook is not one of them."],
+["A friend wanted me to guarantee their financials without a review, so I offered ____.","Never give assurance without doing enough work to support it. Friendship isn't evidence."],
+["Safeguards reduce threats to an acceptable level. My safeguard: ____.","Under the AICPA conceptual framework, identify the threat, evaluate it, then apply safeguards, or decline if nothing reduces it enough."],
+["The real reason the CFO suddenly resigned: ____.","Tone at the top matters. When leadership cuts corners, the whole organization learns that the rules are optional."],
+["A brand-new AICPA principle just dropped: ____.","The real principles: Responsibilities, Public Interest, Integrity, Objectivity and Independence, Due Care, and Scope and Nature of Services."],
+["My LinkedIn says 'integrity,' but my calendar says ____.","Virtue isn't a bio line. Character shows up in what you do when nobody is checking."],
+["Opportunity, the second side of the fraud triangle, looks like ____.","Opportunity is weak oversight: one employee controlling cash with nobody checking. Strong controls shrink it."],
+["Pressure, the first side of the fraud triangle: ____.","Pressure (debt, earnings targets, lifestyle) pushes people toward fraud. It explains fraud, it doesn't excuse it."],
+["The whistleblower hotline was quietly replaced with ____.","Employees need a safe way to report concerns without retaliation. Removing it is a giant red flag."],
+["The 10-K footnote really should have mentioned ____.","Transparent disclosure is part of integrity. Investors rely on what's in the footnotes, and on what isn't left out."],
+["Our conflict-of-interest policy, in its entirety: ____.","With a conflict of interest, evaluate the threat and apply permitted safeguards, or decline the engagement."],
+["During the harassment investigation, HR decided to ____.","Take every complaint seriously without assuming guilt, and follow a fair process."],
+["Shareholders were totally fine with ____ until the stock dropped.","Short-term results don't make an action ethical. Consider all stakeholders and the long-term consequences."],
+["The PCAOB inspector's face when they found ____.","If it isn't documented, it wasn't done. Audit documentation is how you prove due care."],
+];
+
+const WHITE = [
+"Manifesting revenue","Adding three zeros and hoping for the best","Blaming the intern who doesn't exist","Olive Garden breadsticks",
+"A self-review threat with extra steps","Changing my legal name and moving to Wyoming","Watching one TikTok and declaring expertise",
+"The 'no witnesses, no problem' method","Asking the office plant what it thinks","The sacred oath of Microsoft Excel",
+"A thumbs-up emoji as an audit opinion","Asking ChatGPT if the numbers look trustworthy","Shareholder-value-induced delusion",
+"Deleting the entire workbook and calling it a day","A sticky note that says 'please don't commit fraud'","Segregation of duties",
+"The 'my boss said so' defense","Pressure, opportunity and a really nice suit","Debt, denial and a suspicious amount of confidence",
+"Excel, caffeine and tax season","An urgent email with no actual urgency","An ugly pivot table","A true-crime podcast about the office",
+"Netflix documentary rights","Crypto bros whose Lamborghinis are delayed","Updating LinkedIn to 'it's complicated'",
+"A company car before telling anyone","Continuing to audit while avoiding eye contact","Giving the sketchiest employee every password",
+"Letting one person approve their own expenses","'I'll pay it back eventually'","A cookie bribe","Busy season tears",
+"Off-balance-sheet vibes","Cooking the books with a rotisserie chicken","A tax shelter made of blanket forts",
+"Revenue recognized on the vibes method","A suspiciously round number","Ticking and tying my emotional baggage",
+"The CFO's third yacht","A spreadsheet with 47 hidden tabs","Hardcoded plugs","A circular reference in my soul",
+"Restating last year's earnings for fun","A materiality threshold of 'whatever works'","Professional skepticism of my own life choices",
+"An audit trail that leads to Cabo","The intern's first ethical dilemma","Integrity, but only during business hours",
+"Duty-based ethics with a loophole","A consequentialist with a bonus target","Virtue ethics in a Patagonia vest",
+"The quarterly bonus hitting","Honesty until the cameras turn off","Saying 'conflict of interest' three times",
+"Paying the client more to make it ethical","An expensive gift with free shipping","Exchanging the gift for an iPad",
+"A Big 4 partner's golf handicap","The partner who replies-all","A 'quick call' that lasts two hours",
+"A whistleblower named Brenda","Shredding documents as a team-building exercise","Arthur Andersen's ghost",
+"A Ponzi scheme with a loyalty program","Pig-butchering scam texts from 'Jessica'","A crypto exchange run from a group chat",
+"A crypto token named after a dog","Investors who lose everything","Workers forced to run scams",
+"The AICPA Code of Professional Conduct","A Code of Conduct nobody has read","The ethics module I clicked through at 2x speed",
+"CPE credits earned in my sleep","A 4 a.m. reconciliation","An unreconciled petty cash box",
+"Petty cash funding a timeshare","Expensing a Vegas weekend as 'client relations'","A 'business lunch' with my mom",
+"A depreciation schedule for my feelings","Goodwill impairment","Aggressive accounting with a passive-aggressive email",
+"Earnings management","A 'one-time' adjustment, every quarter","Channel stuffing","Round-tripping revenue",
+"Cookie-jar reserves","A related party nobody disclosed","My cousin's consulting firm","A board of directors made of golf buddies",
+"Tone at the top","Tone at the bottom","No tone whatsoever","A culture of 'just get it done'",
+"Retaliation disguised as a 'reorg'","An anonymous hotline that plays hold music forever","HR's favorite word: 'unfortunately'",
+"The SEC's subpoena","An SEC comment letter","The PCAOB showing up unannounced","A going-concern opinion",
+"A qualified opinion with emotional baggage","An adverse opinion of my roommate","Material weakness",
+"Sarbanes-Oxley","SOX compliance as a personality","A Section 404 meltdown","Sampling only the good transactions",
+"Professional judgment, used unprofessionally","Reasonable assurance, unreasonable confidence","The audit committee taking a nap",
+"A smoking gun in the general ledger","A journal entry posted at 11:59 p.m. on the last day of the quarter","A JE called 'misc. adjustment'",
+"Writing 'per client' on everything","Plugging the difference","Rounding errors in the millions",
+"The 'we'll fix it next quarter' strategy","An auditor who's besties with the CFO","Auditing my own work and giving it five stars",
+"Owning stock in the audit client","A side hustle as the client's consultant","Independence in fact but not in appearance",
+"The fraud triangle as a tattoo","A fourth side of the fraud triangle","Rationalizing it because everyone else does it",
+"Wire fraud","Mail fraud, the vintage kind","Federal prison but make it business casual","Club Fed",
+"A plea deal","Cooperating with prosecutors","Becoming a cautionary tale in an ethics class",
+"Being the example in next year's Kahoot","Small unethical decisions","A slippery slope with a water slide",
+"Ethics, but make it optional","Profits over people","People over profits, allegedly","A mission statement written by ChatGPT",
+"Greenwashing","A sustainability report printed on a mountain of paper","Stakeholder capitalism","Shareholder primacy",
+"Kant's disappointed face","John Stuart Mill doing the math","Aristotle's golden mean","The categorical imperative",
+"The greatest good for the greatest number of shareholders","A moral compass that only points to profit",
+"An ethical dilemma on a Friday at 4:59 p.m.","Raising concerns through the proper channels","Documenting everything",
+"Saying no to my boss","Doing the right thing when nobody is watching","Reporting it to the audit committee",
+"The CPA exam's ethics section","My professor's favorite cautionary tale","A group project where one person commits fraud",
+];
+
+</script>
+<script>
+{
+const app = document.getElementById('app');
+const QS = new URLSearchParams(location.search);
+const PREFIX = 'cae-ethics-v1-';
+const SUBMIT_SECS = +QS.get('submit') || 60, VOTE_SECS = +QS.get('vote') || 30, MAX_OPTS = 10, HAND = 7;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const blankify = t => esc(t).replace('____', '<span class="blank">&nbsp;</span>');
+const fillIn = (t, w) => esc(t).replace('____', '<span class="fill">' + esc(String(w).replace(/[.!]$/, '')) + '</span>');
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ls = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+function peerOpts() {
+  if (QS.get('peerhost')) return { host: QS.get('peerhost'), port: +QS.get('peerport') || 9000, path: '/', secure: false, debug: 0, config: { iceServers: [] } };
+  return { debug: 0 };
+}
+const hasPeer = () => typeof window.Peer === 'function';
+const joinURL = code => location.origin + location.pathname + location.search + '#' + code;
+const makeCode = () => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
+let myToken = ls.get('cae-token');
+if (!myToken) { myToken = Math.random().toString(36).slice(2) + Date.now().toString(36); ls.set('cae-token', myToken); }
+
+/* ---------- timers ---------- */
+setInterval(() => {
+  document.querySelectorAll('[data-until]').forEach(el => {
+    const s = Math.max(0, Math.ceil((+el.dataset.until - Date.now()) / 1000));
+    el.textContent = s; el.classList.toggle('low', s <= 10);
+  });
+  if (H) hostTick();
+  if (P) playerWatchdog();
+}, 250);
+
+/* ---------- home ---------- */
+function home(msg) {
+  const code = (location.hash.slice(1) || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+  const me = ls.get('cae-me') || {};
+  const saved = ls.get('cae-host');
+  const canResume = saved && Date.now() - (saved.savedAt || 0) < 4 * 3600e3;
+  app.innerHTML = `
+  <div class="wrap"><div class="hero">
+    <div>
+      <h1 class="brand">Cards Against Ethicality<small>The party game for accountants who have read the AICPA Code. Probably.</small></h1>
+      <form id="joinf" class="panel" autocomplete="off">
+        <label for="code">Room code</label>
+        <input id="code" class="code" maxlength="4" inputmode="text" autocapitalize="characters" value="${esc(code)}" placeholder="ABCD" required>
+        <label for="name">Your name</label>
+        <input id="name" maxlength="20" value="${esc(me.name || '')}" placeholder="First name + last initial" required>
+        <div class="row" style="margin-top:18px"><button type="submit">Join game</button></div>
+        ${msg ? `<p class="err">${esc(msg)}</p>` : ''}
+      </form>
+      <div class="row" style="margin-top:18px">
+        <button class="ghost" id="hostbtn" type="button">Host on the projector</button>
+        ${canResume ? `<button class="ghost" id="resumebtn" type="button">Resume room ${esc(saved.code)}</button>` : ''}
+      </div>
+      ${hasPeer() ? '' : '<p class="err">The game engine did not load. Check your internet connection and refresh.</p>'}
+    </div>
+    <div class="deal" aria-hidden="true">
+      <div class="card black c1">My rationalization for embezzling: <span class="blank">&nbsp;</span>.</div>
+      <div class="card white c2">Manifesting revenue</div>
+      <div class="card white c3">Olive Garden breadsticks</div>
+    </div>
+  </div></div>`;
+  document.getElementById('joinf').onsubmit = e => {
+    e.preventDefault();
+    const c = document.getElementById('code').value.toUpperCase().replace(/[^A-Z]/g, '');
+    const n = document.getElementById('name').value.trim().slice(0, 20);
+    if (c.length !== 4 || !n) return;
+    joinGame(c, n);
+  };
+  document.getElementById('hostbtn').onclick = () => hostStart(false);
+  const rb = document.getElementById('resumebtn'); if (rb) rb.onclick = () => hostStart(true);
+}
+
+/* =================== HOST =================== */
+let H = null;
+function hostStart(resume) {
+  if (!hasPeer()) return home('The game engine did not load. Refresh and try again.');
+  const s = resume ? ls.get('cae-host') : null;
+  H = s ? s : { code: makeCode(), players: {}, phase: 'lobby', round: 0, total: 8, blackOrder: shuffle([...BLACK.keys()]), deck: [], black: null, deadline: 0, options: [] };
+  H.conns = {}; H.online = false; H.err = '';
+  Object.values(H.players).forEach(p => p.on = false);
+  if (H.deadline) H.deadline = Math.max(H.deadline, Date.now() + 15000);
+  history.replaceState(null, '', location.pathname + location.search);
+  openHostPeer(0);
+  renderHost();
+}
+function openHostPeer(tries) {
+  const peer = new Peer(PREFIX + H.code, peerOpts());
+  H.peer = peer;
+  peer.on('open', () => { H.online = true; H.err = ''; renderHost(); });
+  peer.on('connection', conn => {
+    conn.on('data', m => onHostMsg(conn, m));
+    conn.on('close', () => {
+      const t = conn._tok;
+      if (t && H.conns[t] === conn) { delete H.conns[t]; if (H.players[t]) H.players[t].on = false; changed(); }
+    });
+    conn.on('error', () => {});
+  });
+  peer.on('disconnected', () => { H.online = false; renderHost(); setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1500); });
+  peer.on('error', e => {
+    if (e.type === 'unavailable-id') {
+      peer.destroy();
+      if (tries < 6) { H.err = 'Reclaiming room code…'; setTimeout(() => openHostPeer(tries + 1), 3000); }
+      else H.err = 'That room code is taken. Go back and host a new game.';
+      renderHost();
+    } else if (e.type !== 'peer-unavailable') { H.err = 'Connection trouble (' + e.type + '). Retrying…'; renderHost(); }
+  });
+}
+function draw(hand) {
+  for (let k = 0; k < 20; k++) {
+    if (!H.deck.length) H.deck = shuffle([...WHITE.keys()]);
+    const c = H.deck.pop();
+    if (!hand.includes(c)) return c;
+  }
+  return H.deck.pop() ?? 0;
+}
+function refill(p) { while (p.hand.length < HAND) p.hand.push(draw(p.hand)); }
+function onHostMsg(conn, m) {
+  if (!m || typeof m !== 'object') return;
+  if (m.t === 'hello') {
+    const tok = String(m.token || '').slice(0, 40), name = String(m.name || '').trim().slice(0, 20) || 'Player';
+    if (!tok) return;
+    let p = H.players[tok];
+    if (!p) { p = H.players[tok] = { name, score: 0, hand: [], sub: null, vote: null, on: true, joined: Date.now() }; refill(p); }
+    p.name = name; p.on = true;
+    const old = H.conns[tok]; if (old && old !== conn) { old._tok = null; try { old.close(); } catch (e) {} }
+    conn._tok = tok; H.conns[tok] = conn;
+    changed(); return;
+  }
+  const p = H.players[conn._tok]; if (!p) return;
+  if (m.t === 'submit' && H.phase === 'submit' && p.sub == null) {
+    const i = +m.i; if (!(i >= 0 && i < p.hand.length)) return;
+    p.sub = p.hand.splice(i, 1)[0];
+    changed();
+    if (active().every(q => q.sub != null)) toVote();
+  } else if (m.t === 'vote' && H.phase === 'vote' && p.vote == null) {
+    const o = +m.o, opt = H.options[o];
+    if (!opt || opt.card === p.sub) return;
+    p.vote = o; changed();
+    if (active().filter(canVote).every(q => q.vote != null)) toReveal();
+  }
+}
+const active = () => Object.values(H.players).filter(p => p.on);
+const canVote = p => H.options.some(o => o.card !== p.sub);
+function startRound() {
+  if (H.round >= H.total) return endGame();
+  H.round++;
+  H.black = H.blackOrder[(H.round - 1) % BLACK.length];
+  Object.values(H.players).forEach(p => { p.sub = null; p.vote = null; refill(p); p.pts = 0; });
+  H.options = []; H.phase = 'submit'; H.deadline = Date.now() + SUBMIT_SECS * 1000;
+  changed();
+}
+function toVote() {
+  if (H.phase !== 'submit') return;
+  const groups = {};
+  Object.entries(H.players).forEach(([t, p]) => { if (p.sub != null) (groups[p.sub] = groups[p.sub] || []).push(t); });
+  let opts = shuffle(Object.entries(groups)).sort((a, b) => b[1].length - a[1].length).slice(0, MAX_OPTS);
+  H.cut = Object.keys(groups).length - opts.length;
+  H.options = shuffle(opts.map(([c, by]) => ({ card: +c, by, votes: 0 })));
+  if (H.options.length < 2) return toReveal(true);
+  H.phase = 'vote'; H.deadline = Date.now() + VOTE_SECS * 1000;
+  changed();
+}
+function toReveal(force) {
+  if (H.phase !== 'vote' && !force) return;
+  H.options.forEach(o => o.votes = 0);
+  Object.values(H.players).forEach(p => { if (p.vote != null && H.options[p.vote]) H.options[p.vote].votes++; });
+  if (H.options.length === 1) H.options[0].votes = Math.max(H.options[0].votes, 1);
+  H.options.forEach(o => o.by.forEach(t => { const p = H.players[t]; if (p) { p.score += o.votes; p.pts = o.votes; } }));
+  H.options.sort((a, b) => b.votes - a.votes);
+  H.phase = 'reveal'; H.deadline = 0;
+  changed();
+}
+function endGame() { H.phase = 'end'; H.deadline = 0; changed(); }
+function newGame() {
+  Object.values(H.players).forEach(p => { p.score = 0; p.sub = null; p.vote = null; p.pts = 0; });
+  H.round = 0; H.phase = 'lobby'; H.blackOrder = shuffle([...BLACK.keys()]); changed();
+}
+function hostTick() {
+  if (!H.deadline || Date.now() < H.deadline) return;
+  if (H.phase === 'submit') toVote(); else if (H.phase === 'vote') toReveal();
+}
+const ranked = () => Object.entries(H.players).sort((a, b) => b[1].score - a[1].score || a[1].joined - b[1].joined);
+function save() {
+  const { conns, peer, online, err, bq, lastKey, ...rest } = H;
+  ls.set('cae-host', { ...rest, savedAt: Date.now() });
+}
+function changed() {
+  save(); renderHost();
+  if (!H.bq) H.bq = setTimeout(() => { H.bq = null; broadcast(); }, 80);
+}
+function broadcast() {
+  const rank = ranked(), pos = {}; rank.forEach(([t], i) => pos[t] = i + 1);
+  const left = H.deadline ? H.deadline - Date.now() : 0;
+  const b = H.black != null ? BLACK[H.black] : null;
+  Object.entries(H.conns).forEach(([t, c]) => {
+    const p = H.players[t]; if (!p || !c.open) return;
+    const st = {
+      t: 'state', phase: H.phase, round: H.round, total: H.total, left, n: Object.keys(H.players).length,
+      name: p.name, score: p.score, rank: pos[t], black: b ? b[0] : null,
+      hand: p.hand.map(i => WHITE[i]), sub: p.sub != null ? WHITE[p.sub] : null, vote: p.vote,
+      options: H.phase === 'vote' || H.phase === 'reveal' ? H.options.map(o => ({ text: WHITE[o.card], mine: o.card === p.sub, votes: H.phase === 'reveal' ? o.votes : undefined })) : [],
+      pts: H.phase === 'reveal' ? p.pts || 0 : 0, lesson: H.phase === 'reveal' && b ? b[1] : null
+    };
+    try { c.send(st); } catch (e) {}
+  });
+}
+function renderHost() {
+  if (!H) return;
+  const key = H.phase + H.round, pop = key !== H.lastKey ? 'pop' : ''; H.lastKey = key;
+  const all = Object.values(H.players), act = active(), b = H.black != null ? BLACK[H.black] : null;
+  const top = `<div class="top">
+    <div class="brand" style="font-size:clamp(22px,2.2vw,30px)">Cards Against Ethicality${H.round ? `<small>Round ${H.round} of ${H.total}</small>` : ''}</div>
+    <div class="row joinline"><span>Join at <b>${esc(joinURL(H.code).replace(/^https?:\/\//, '').replace(/#.*/, ''))}</b></span><span class="roomcode">${esc(H.code)}</span></div>
+    <div class="muted">${act.length} playing${H.online ? '' : ' · <span class="err">connecting…</span>'}</div>
+  </div>${H.err ? `<p class="err">${esc(H.err)}</p>` : ''}`;
+  let body = '';
+  if (H.phase === 'lobby') {
+    body = `<div class="stage">
+      <div class="panel" style="display:grid;gap:16px;justify-items:center;text-align:center">
+        <div class="qr" id="qr"></div>
+        <div class="big">Scan, or go to the link and enter <span style="color:var(--hi)">${esc(H.code)}</span></div>
+      </div>
+      <div>
+        <p class="big" style="margin-top:0">${act.length ? act.length + ' in the lobby' : 'Waiting for players…'}</p>
+        <div class="chips">${all.map(p => `<span class="chip ${p.on ? '' : 'off'}">${esc(p.name)}</span>`).join('')}</div>
+        <div class="row" style="margin-top:28px">
+          <label for="rounds" style="margin:0">Rounds</label>
+          ${[5, 8, 12].map(n => `<button class="${H.total === n ? '' : 'ghost'}" data-rounds="${n}">${n}</button>`).join('')}
+          <button id="go" ${act.length ? '' : 'disabled'}>Start game</button>
+        </div>
+        <p class="muted">Every round: everyone plays a card from their phone, everyone votes for the funniest, then the Reality Check shows what an ethical CPA would actually do. You get a point for every vote your card gets.</p>
+      </div></div>`;
+  } else if (H.phase === 'submit') {
+    const done = act.filter(p => p.sub != null).length;
+    body = `<div class="stage">
+      <div class="card black ${pop}">${blankify(b[0])}</div>
+      <div>
+        <div class="row" style="justify-content:space-between"><p class="big" style="margin:0">Pick your card!<br><span class="muted">${done} / ${act.length} played</span></p><div class="timer" data-until="${H.deadline}"></div></div>
+        <div class="chips" style="margin:20px 0">${act.map(p => `<span class="chip ${p.sub != null ? 'on' : ''}">${esc(p.name)}</span>`).join('')}</div>
+        <button id="skip">Everyone's in → vote</button>
+      </div></div>`;
+  } else if (H.phase === 'vote') {
+    const voters = act.filter(canVote), done = voters.filter(p => p.vote != null).length;
+    body = `<div class="stage">
+      <div class="card black">${blankify(b[0])}</div>
+      <div>
+        <div class="row" style="justify-content:space-between;margin-bottom:16px"><p class="big" style="margin:0">Vote on your phone<br><span class="muted">${done} / ${voters.length} voted</span></p><div class="timer" data-until="${H.deadline}"></div></div>
+        <div class="opts">${H.options.map((o, i) => `<div class="card white ${pop}"><span class="tag">${String.fromCharCode(65 + i)}</span>${esc(WHITE[o.card])}</div>`).join('')}</div>
+        ${H.cut ? `<p class="muted">${H.cut} more card${H.cut > 1 ? 's' : ''} were played. The ${MAX_OPTS} shown are the most-played, then random.</p>` : ''}
+        <div class="row" style="margin-top:16px"><button id="reveal">Reveal results</button></div>
+      </div></div>`;
+  } else if (H.phase === 'reveal') {
+    const max = Math.max(1, ...H.options.map(o => o.votes)), best = H.options[0];
+    const names = by => { const n = by.map(t => H.players[t]?.name).filter(Boolean); return n.slice(0, 4).join(', ') + (n.length > 4 ? ` +${n.length - 4} more` : ''); };
+    body = `<div class="stage">
+      <div>
+        <div class="card black">${best ? fillIn(b[0], WHITE[best.card]) : blankify(b[0])}</div>
+        <div class="lesson ${pop}"><b>Reality Check</b>${esc(b[1])}</div>
+      </div>
+      <div>
+        ${H.options.length ? `<div class="res">${H.options.slice(0, 6).map(o => `<div class="resrow ${o.votes === max && o.votes ? 'win' : ''}"><i class="bar" style="width:${Math.round(o.votes / max * 100)}%"></i><span><strong>${esc(WHITE[o.card])}</strong><span class="by">${esc(names(o.by))}</span></span><b>${o.votes}</b></div>`).join('')}</div>` : '<p class="big">Nobody played a card. Bold strategy.</p>'}
+        <p class="muted" style="margin:18px 0 8px">Leaderboard</p>
+        <div class="board">${ranked().slice(0, 5).map(([, p]) => `<div><span>${esc(p.name)}</span><b>${p.score}</b></div>`).join('')}</div>
+        <div class="row" style="margin-top:18px"><button id="next">${H.round >= H.total ? 'Final scores' : 'Next round'}</button></div>
+      </div></div>`;
+  } else if (H.phase === 'end') {
+    const r = ranked();
+    body = `<div class="stage">
+      <div class="card black ${pop}" style="min-height:260px">The most ethical accountant in the room is <span class="fill">${esc(r[0]?.[1].name || 'nobody')}</span>.</div>
+      <div><p class="big" style="margin-top:0">Final standings</p>
+        <div class="board">${r.slice(0, 10).map(([, p]) => `<div><span>${esc(p.name)}</span><b>${p.score}</b></div>`).join('')}</div>
+        <div class="row" style="margin-top:18px"><button id="again">Play again</button><button class="ghost" id="quit">End room</button></div>
+      </div></div>`;
+  }
+  app.innerHTML = `<div class="wrap">${top}${body}</div>`;
+  const on = (id, f) => { const el = document.getElementById(id); if (el) el.onclick = f; };
+  on('go', startRound); on('skip', toVote); on('reveal', () => toReveal()); on('next', startRound); on('again', newGame);
+  on('quit', () => { ls.del('cae-host'); try { H.peer.destroy(); } catch (e) {} H = null; home(); });
+  document.querySelectorAll('[data-rounds]').forEach(el => el.onclick = () => { H.total = +el.dataset.rounds; changed(); });
+  const qr = document.getElementById('qr');
+  if (qr && typeof qrcode === 'function') { const q = qrcode(0, 'M'); q.addData(joinURL(H.code)); q.make(); qr.innerHTML = q.createSvgTag({ margin: 0, scalable: true }); }
+  else if (qr) qr.innerHTML = `<span style="color:#111;font-weight:800;text-align:center">${esc(joinURL(H.code))}</span>`;
+}
+
+/* =================== PLAYER =================== */
+let P = null;
+function joinGame(code, name) {
+  if (!hasPeer()) return home('The game engine did not load. Refresh and try again.');
+  ls.set('cae-me', { code, name });
+  history.replaceState(null, '', location.pathname + location.search + '#' + code);
+  P = { code, name, status: 'connecting', st: null, sel: null, key: '', lastDial: 0 };
+  P.peer = new Peer(peerOpts());
+  P.peer.on('open', () => dial());
+  P.peer.on('error', e => {
+    if (e.type === 'peer-unavailable') P.status = 'nohost';
+    else if (e.type !== 'unavailable-id') P.status = 'offline';
+    renderPlayer();
+  });
+  P.peer.on('disconnected', () => setTimeout(() => { if (P && !P.peer.destroyed) P.peer.reconnect(); }, 1500));
+  renderPlayer();
+}
+function dial() {
+  if (!P || !P.peer.open) return;
+  if (P.conn && P.conn.open) return;
+  P.lastDial = Date.now();
+  const c = P.peer.connect(PREFIX + P.code, { reliable: true });
+  P.conn = c;
+  c.on('open', () => { P.status = 'ok'; P.html = ''; c.send({ t: 'hello', token: myToken, name: P.name }); renderPlayer(); });
+  c.on('data', m => {
+    if (!m || m.t !== 'state') return;
+    const until = m.left > 0 ? Date.now() + m.left : 0, key = m.phase + m.round;
+    if (key !== P.key) { P.key = key; P.sel = null; m.until = until; }
+    else m.until = P.st && Math.abs((P.st.until || 0) - until) < 2000 ? P.st.until : until;
+    P.st = m; P.status = 'ok'; renderPlayer();
+  });
+  c.on('close', () => { if (P && P.conn === c) { P.status = 'reconnecting'; renderPlayer(); } });
+  c.on('error', () => {});
+}
+function playerWatchdog() {
+  if (!P || !P.peer || P.peer.destroyed) return;
+  if (P.peer.open && !(P.conn && P.conn.open) && Date.now() - P.lastDial > 4000) dial();
+}
+function send(m) { if (P.conn && P.conn.open) P.conn.send(m); }
+function renderPlayer() {
+  if (!P) return;
+  const s = P.st;
+  const banner = {
+    connecting: 'Connecting to the room…',
+    nohost: `Can't find room ${P.code}. Check the code on the screen. Retrying…`,
+    offline: 'Connection problem. Retrying…',
+    reconnecting: 'Lost connection. Reconnecting…'
+  }[P.status];
+  let body = '', dock = '';
+  if (!s) {
+    body = `<div class="wait"><p class="big">Hang tight, ${esc(P.name)}</p><p class="muted">Joining room ${esc(P.code)}</p></div>`;
+  } else if (s.phase === 'lobby') {
+    body = `<div class="wait"><p class="big">You're in, ${esc(s.name)}!</p><p class="muted">Watch the big screen. The game starts soon.</p></div>`;
+  } else if (s.phase === 'submit') {
+    body = `<div class="card black">${blankify(s.black)}</div>`;
+    if (s.sub != null) body += `<div class="wait"><p class="big">You played:</p><div class="card white" style="text-align:left;font-size:20px">${esc(s.sub)}</div><p class="muted">Waiting for everyone else…</p></div>`;
+    else {
+      body += `<div class="hand">${s.hand.map((t, i) => `<button data-card="${i}" class="${P.sel === i ? 'sel' : ''}">${esc(t)}</button>`).join('')}</div>`;
+      dock = `<div class="dock"><button id="play" ${P.sel == null ? 'disabled' : ''}>${P.sel == null ? 'Tap a card' : 'Play this card'}</button></div>`;
+    }
+  } else if (s.phase === 'vote') {
+    body = `<div class="card black">${blankify(s.black)}</div>`;
+    if (s.vote != null) body += `<div class="wait"><p class="big">Vote locked in</p><p class="muted">Results coming up on the big screen.</p></div>`;
+    else {
+      body += `<p class="muted" style="margin:0 0 10px">Vote for the funniest. You can't vote for your own.</p><div class="hand">${s.options.map((o, i) => `<button data-opt="${i}" class="${P.sel === i ? 'sel' : ''} ${o.mine ? 'mine' : ''}" ${o.mine ? 'disabled' : ''}><span class="muted" style="color:#666">${String.fromCharCode(65 + i)} · </span>${esc(o.text)}${o.mine ? ' (yours)' : ''}</button>`).join('')}</div>`;
+      dock = `<div class="dock"><button id="castvote" ${P.sel == null ? 'disabled' : ''}>${P.sel == null ? 'Tap your favorite' : 'Vote for ' + String.fromCharCode(65 + P.sel)}</button></div>`;
+    }
+  } else if (s.phase === 'reveal') {
+    body = `<div class="wait"><p class="big">${s.pts ? `+${s.pts} point${s.pts > 1 ? 's' : ''}!` : (s.sub != null ? 'No votes this time' : 'You sat this one out')}</p><p class="muted">You're #${s.rank} of ${s.n} with ${s.score} point${s.score === 1 ? '' : 's'}.</p></div>
+      ${s.lesson ? `<div class="lesson"><b>Reality Check</b>${esc(s.lesson)}</div>` : ''}`;
+  } else if (s.phase === 'end') {
+    body = `<div class="wait"><p class="big">Game over</p><p style="font-size:56px;font-weight:900;margin:0;color:var(--hi)">#${s.rank}</p><p class="muted">out of ${s.n}, with ${s.score} point${s.score === 1 ? '' : 's'}.</p></div>`;
+  }
+  const status = s && s.phase !== 'lobby' ? `<div class="status"><span>Round <b>${s.round}</b>/${s.total}</span>${s.until ? `<span><b data-until="${s.until}"></b>s left</span>` : ''}<span><b>${s.score}</b> pts · #${s.rank}</span></div>` : `<div class="status"><span>${esc(P.name)}</span><span>Room <b>${esc(P.code)}</b></span></div>`;
+  const html = `<div class="phone">${banner ? `<div class="banner">${esc(banner)}</div>` : ''}${status}${body}</div>${dock}`;
+  if (html === P.html) return;
+  P.html = html; app.innerHTML = html;
+  document.querySelectorAll('[data-card]').forEach(el => el.onclick = () => { P.sel = +el.dataset.card; renderPlayer(); });
+  document.querySelectorAll('[data-opt]').forEach(el => el.onclick = () => { P.sel = +el.dataset.opt; renderPlayer(); });
+  const play = document.getElementById('play'); if (play) play.onclick = () => { if (P.sel != null) { send({ t: 'submit', i: P.sel }); play.disabled = true; play.textContent = 'Sending…'; } };
+  const cv = document.getElementById('castvote'); if (cv) cv.onclick = () => { if (P.sel != null) { send({ t: 'vote', o: P.sel }); cv.disabled = true; cv.textContent = 'Sending…'; } };
+}
+
+/* ---------- boot ---------- */
+function boot() {
+  const code = (location.hash.slice(1) || '').toUpperCase();
+  const me = ls.get('cae-me');
+  if (code.length === 4 && me && me.code === code && me.name && hasPeer()) joinGame(code, me.name);
+  else home();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+}
+</script>
+</body>
+</html>
